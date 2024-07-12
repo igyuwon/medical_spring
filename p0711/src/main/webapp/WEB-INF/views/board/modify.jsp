@@ -50,6 +50,15 @@
           <input type="file" name="files" id="file">
         </td>
       </tr>
+      <tr>
+        <th>파일이름</th>
+        <c:if test = "${boardDto.bfile!=null}">
+            <td>${boardDto.bfile}</td>
+        </c:if>
+        <c:if test = "${boardDto.bfile==null}">
+          <td>첨부파일 없음</td>
+        </c:if>
+      </tr>
     </table>
     <hr>
     <div class="button-wrapper">
