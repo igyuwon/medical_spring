@@ -249,8 +249,14 @@ $(document).ready(function() {
 							
 							//등록버튼 클릭
 							$(".replyBtn").click(function(){
+								if(${sessionId == null}){
+									alert("로그인을 하셔야 댓글작성이 가능합니다.");
+									// location.href="/member/login";
+									$(".replyType").val("");
+									return false;
+								}
 								bno = "${nDto.bno}";
-								id = "aaa";
+								id = '${sessionId}';
 								cpw = $(".replynum").val();
 								ccontent = $(".replyType").val();
 
@@ -295,7 +301,7 @@ $(document).ready(function() {
 
 							}); // replyBtn
 							// 삭제버튼 클릭
-							$(".dBtn").click(function(){
+							$(document).on("click",".dBtn",function(){
 								console.log("ui cno : "+ $(this).closest('ul').attr('id'));
 								if(!confirm("댓글을 삭제하시겠습니까?")){
 									return false;
@@ -321,12 +327,12 @@ $(document).ready(function() {
 							}); // dBtn
 
 							// 수정버튼 클릭
-							$(".uBtn").click(function(){
-								alert("수정버튼 클릭");
+							$(document).on("click",".uBtn",function(){
+								alert("댓글 수정을 진행합니다.");
 								console.log("ui cno : "+ $(this).closest('ul').attr('id'));
 
 								cno = $(this).closest('ul').attr('id');
-								id = 'aaa';
+								id = '${sessionId}';
 								cdate = $(this).closest('ul').children('.name').children('span').text();
 								ccontent = $(this).closest('ul').children('.txt').text();
 
@@ -372,7 +378,6 @@ $(document).ready(function() {
 
 							// 수정에서 완료버튼
 							$(document).on("click",".updateBtn",function(){
-								alert("수정이 완료되었습니다.")
 								// 데이터 확인
 								console.log("ui cno : "+ $(this).closest('ul').attr('id'));
 								ccontent = $(this).closest('ul').children('.txt').children('.replyType').val();
@@ -381,6 +386,33 @@ $(document).ready(function() {
 								console.log("update cno : "+ cno);
 								console.log("update id : "+ id);
 								console.log("update ccontent : "+ ccontent);
+
+								// 수정한 내용을 controller로 전송
+								$.ajax({
+									url:"/customer/commentBUpdate",
+									type:"post",
+									data:{"cno":cno,"id":id,"ccontent":ccontent},
+									dataType:"json", // 기본이 text
+									success:function(data){
+										alert("댓글이 수정되었습니다.");
+										let htmlData="";
+										htmlData += '<li class="name">'+data.id+' <span>['+moment(data.cdata).format("YYYY-MM-DD HH:mm:ss")+']</span></li>';
+										htmlData += '<li class="txt">'+data.ccontent+'</li>';
+										htmlData += '<li class="btn">';
+										htmlData += '<a class="rebtn uBtn">수정</a>&nbsp';
+										htmlData += '<a class="rebtn dBtn">삭제</a>';
+										htmlData += '</li>';
+
+										// 현재위치에 수정코드 입력
+										$("#"+cno).html(htmlData);
+
+									},
+									error:function(){
+										alert("실패");
+									}
+								});
+
+
 
 								// 데이터 넣기
 /*								let htmlData="";
@@ -402,7 +434,7 @@ $(document).ready(function() {
 					<div class="replyWrite">
 						<ul>
 							<li class="in">
-								<p class="txt">총 <span id="comment_number" class="orange">${countComment }</span> 개의 댓글이 달려있습니다.</p>
+								<p class="txt">총 <span id="comment_number" class="orange">${list.size() }</span> 개의 댓글이 달려있습니다.</p>
 								<p class="password">비밀번호&nbsp;&nbsp;<input type="password" class="replynum" /></p>
 								<textarea class="replyType"></textarea>
 							</li>
@@ -410,36 +442,38 @@ $(document).ready(function() {
 						</ul>
 						<p class="ntic">※ 비밀번호를 입력하시면 댓글이 비밀글로 등록 됩니다.</p>
 					</div>
-
 					<div class="replyBox">
-						<c:forEach items="${list }" var="cDto">
-						<ul id="${cDto.cno}">
-							<li class="name">${cDto.id } <span>${cDto.cdate }</span></li>
-							<li class="txt">${cDto.ccontent }</li>
-							<li class="btn">
-								<a class="rebtn uBtn">수정</a>
-								<a class="rebtn dBtn">삭제</a>
-							</li>
-						</ul>
-						</c:forEach>
-						<c:if test="${countComment == 0 }">
+						<c:if test="${list.size()>0 }">
+							<c:forEach items="${list}" var="cDto">
+								<ul id="${cDto.cno}">
+
+									<li class="name">${cDto.id} <span>[${cDto.cdate }]</span></li>
+									<c:if test="${sessionId != cDto.id and cDto.cpw != null}">
+										<li class="txt">
+											<a class="passwordBtn"><span class="orange">※ 비밀글입니다.</span></a>
+										</li>
+									</c:if>
+
+									<c:if test="${sessionId != cDto.id and cDto.cpw == null}">
+										<li class="txt">${cDto.ccontent }</li>
+									</c:if>
+
+									<c:if test="${sessionId==cDto.id }">
+										<li class="txt">${cDto.ccontent }</li>
+										<li class="btn">
+											<a class="rebtn uBtn">수정</a>
+											<a class="rebtn dBtn">삭제</a>
+										</li>
+									</c:if>
+								</ul>
+							</c:forEach>
+						</c:if>
+						<c:if test="${list.size() == 0 }">
 							<ul>
 								댓글이 없습니다.
 							</ul>
 						</c:if>
 
-						<!-- 수정버튼 클릭 시에만 나타남 시작-->
-						<!-- 
-						<ul>
-							<li class="name">jjabcde <span>[2014-03-04&nbsp;&nbsp;15:01:59]</span></li>
-							<li class="txt"><textarea class="replyType"></textarea></li>
-							<li class="btn">
-								<a href="#" class="rebtn">완료</a>
-								<a href="#" class="rebtn">취소</a>
-							</li>
-						</ul>
-						 -->
-						<!-- 수정버튼 클릭 시 끝 -->
 						<!-- 비밀글 폼 -->
 						<!-- 
 						<ul>
@@ -458,7 +492,7 @@ $(document).ready(function() {
 					<div class="btnArea btline">
 						<div class="bRight">
 							<ul>
-								<li><a href="#" class="sbtnMini mw">목록</a></li>
+								<li><a href="/customer/notice" class="sbtnMini mw">목록</a></li>
 							</ul>
 						</div>
 					</div>

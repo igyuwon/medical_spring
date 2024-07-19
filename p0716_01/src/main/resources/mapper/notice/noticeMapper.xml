@@ -42,5 +42,11 @@
 	<delete id="deleteCommentB">
 		delete from commentB where cno=#{cno}
 	</delete>
-	
+
+	<!-- 하단 댓글 저장 -->
+	<update id="updateCommentB">
+		update commentB set ccontent=#{ccontent},cdate=sysdate
+		where cno=#{cno}
+	</update>
+
 </mapper>

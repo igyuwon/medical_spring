@@ -248,6 +248,14 @@ $(document).ready(function() {
 
 
 					<div class="btnAreaList">
+						<c:if test="${sessionId != null}">
+							<!--글쓰기 버튼-->
+							<div class="bwright">
+								<ul>
+									<li><a href="#" class="sbtnMini">글쓰기</a></li>
+								</ul>
+							</div>
+						</c:if>
 						<!-- 페이징이동1 -->
 						<div class="allPageMoving1">
 
